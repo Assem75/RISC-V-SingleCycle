@@ -15,3 +15,5 @@ R-type instructions I-type instructions S-type instructions SB-type instructions
 *Project Design Description:
 
 The final part of this document provides a comprehensive description of our project's design. We emphasize the utilization of the VIVADO tool and offer insights into the key components and considerations involved in our single-cycle RISC-V processor implementation.
+
+*The project has been thoroughly tested by using a comprehensive set of various instruction formats to ensure its complete functionality, have a look at the Test_Program folder. 
