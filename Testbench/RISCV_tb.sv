@@ -40,10 +40,10 @@ module RISC_tb ();
     	testCases    = 0;
 
 
-	reset_check();
+		reset_check();
 
 
-	//The following checking conditions are based on the attached machine code along with this project 
+		//The following checking conditions are based on the attached machine code along with this project 
 	
     	check_regfile (2,  5,  1);
     	check_regfile (3, 12,  2);
@@ -72,10 +72,13 @@ module RISC_tb ();
     	check_regfile (2,  25, 19);
 
     	check_DMEM (100,25, 20);
+    	
+    	check_regfile (20 , 32'h12345000, 21);
 
+    	check_JALR (21, 32'h00000058, 32'h00000008, 22);
 
     	$display("%t: errorCases = %0d \t correctCases = %0d \t testCases = %0d", $time, errorCases, correctCases, testCases);
-    	
+
     	$stop;
     end
 
@@ -83,53 +86,69 @@ module RISC_tb ();
 
    /*********Tasks ************/
 
-    	task reset_check (); 
-    		reset_n = 1'b0;
-    		@(negedge clk);
-    		reset_n = 1'b1;
-    	endtask
+   task reset_check (); 
+    	reset_n = 1'b0;
+    	@(negedge clk);
+    	reset_n = 1'b1;
+   endtask
 
 
 	task check_PC (input [31:0] expected_PC, input [4:0]codeLine);
 		@(negedge clk);
-		if(DUT.inst_CPU_wrapper.inst_Datapath.PC.Q !== expected_PC) begin
+		if(DUT.inst_CPU_wrapper.inst_Datapath.PC.Q != expected_PC) begin
 			errorCases ++;
 			testCases ++;
-    			$display("%t:ERROR in line %0d. PC_value = %0h while the expected_PC_value = %0h",     $time,codeLine, DUT.inst_CPU_wrapper.inst_Datapath.PC.Q, expected_PC);
-    		end
-    		else begin
-    			correctCases ++;
-    			testCases ++;
-    		end
+    		$display("%t: ERROR in line %0d. PC_value = %0h while the expected_PC_value = %0h",     $time,codeLine, DUT.inst_CPU_wrapper.inst_Datapath.PC.Q, expected_PC);
+    	end
+    	else begin
+    		correctCases ++;
+    		testCases ++;
+    	end
 	endtask 
 
 
 
-	task check_regfile (input [5:0] index, input [31:0] expected_value, input [4:0]codeLine);
+	task check_regfile (input [4:0] index, input [31:0] expected_value, input [4:0]codeLine);
 		@(negedge clk);
-		if(DUT.inst_CPU_wrapper.inst_Datapath.reg_file_inst.reg_file[index] !== expected_value) begin
+		if(DUT.inst_CPU_wrapper.inst_Datapath.reg_file_inst.reg_file[index] != expected_value) begin
 			errorCases ++;
 			testCases ++;
-    			$display("%t:ERROR in line %0d. regFile[%0d] = %0d while the expected_value = %0d", $time,codeLine, index, DUT.inst_CPU_wrapper.inst_Datapath.reg_file_inst.reg_file[index] , expected_value);
-    		end
-    		else begin
-    			correctCases ++;
-    			testCases ++;
-    		end
+    		$display("%t: ERROR in line %0d. regFile[%0d] = %0d while the expected_value = %0d", $time,codeLine, index, DUT.inst_CPU_wrapper.inst_Datapath.reg_file_inst.reg_file[index] , expected_value);
+    	end
+    	else begin
+    		correctCases ++;
+    		testCases ++;
+    	end
+	endtask
+
+	task check_JALR (input [4:0] index, input [31:0] expected_value, input [31:0] expected_PC, input [4:0]codeLine);
+		@(negedge clk);
+		if(DUT.inst_CPU_wrapper.inst_Datapath.reg_file_inst.reg_file[index] == expected_value && DUT.inst_CPU_wrapper.inst_Datapath.PC.Q == expected_PC) begin
+			correctCases ++;
+    		testCases ++;
+		end
+    	else begin
+    		errorCases ++;
+			testCases ++;
+			if(DUT.inst_CPU_wrapper.inst_Datapath.reg_file_inst.reg_file[index] != expected_value)
+				$display("%t: ERROR in line %0d. regFile[%0d] = %0d while the expected_value = %0d", $time,codeLine, index, DUT.inst_CPU_wrapper.inst_Datapath.reg_file_inst.reg_file[index] , expected_value);
+			if(DUT.inst_CPU_wrapper.inst_Datapath.PC.Q != expected_PC)    	
+				$display("%t: ERROR in line %0d. PC_value = %0h while the expected_PC_value = %0h",     $time,codeLine, DUT.inst_CPU_wrapper.inst_Datapath.PC.Q, expected_PC);
+    	end
 	endtask
 
 
 
-	task check_DMEM (input [1023:0] index, input [31:0] expected_value, input [4:0]codeLine);
+	task check_DMEM (input [9:0] index, input [31:0] expected_value, input [4:0]codeLine);
 		@(negedge clk);
-		if(DUT.DMEM_inst.dmem[index] !== expected_value) begin
+		if(DUT.DMEM_inst.dmem[index] != expected_value) begin
 			errorCases ++;
-    			testCases ++;
-    			$display("%t:ERROR in line %0d. DMEM[%0d] = %0d while the expected_value = %0d", $time,codeLine, index, DUT.DMEM_inst.dmem[index], expected_value);
-    		end
-    		else begin
-    			correctCases ++;
-    			testCases ++;
-    		end
+    		testCases ++;
+    		$display("%t: ERROR in line %0d. DMEM[%0d] = %0d while the expected_value = %0d", $time,codeLine, index, DUT.DMEM_inst.dmem[index], expected_value);
+    	end
+    	else begin
+    		correctCases ++;
+    		testCases ++;
+    	end
 	endtask
 endmodule 
